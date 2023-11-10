@@ -1,17 +1,24 @@
+from tkinter import simpledialog
 import numpy as np
 import pandas as pd
 import random
 import tkinter as tk
 
 #runs the program ; (True, False) for NFA concat. ; (False, True) for DFA concat.
-def run(nfa, dfa):
-    A, B = read_file("inputDFATest")
+def run():
+    #read input and initalize variables
+    A, B = read_file("sampleDFATest")
     info = "Input A:\n" + format_input(A, -1, "", "", "", True, False, A, B, A, B)
     info += "\nInput B:\n" + format_input(B, -1, "", "", "", False, True, A, B, A, B)
     old_A = A
     old_B = B
-    if nfa:
-        C, modified_components_A, orig_components_A, modified_components_B, orig_components_B, B, A, old_A, old_B = create_concat_dfa(A, B)
+
+    #get type from user
+    concatenation_type = get_concatenation_type()
+
+    #if type = nfa, create nfa concatenation
+    if concatenation_type == "nfa":
+        C, modified_components_A, orig_components_A, modified_components_B, orig_components_B, old_A, old_B = create_concat_dfa(A, B)
         orig_components_A = A[1]
         orig_components_B = B[1]
         info += "\nNew A:\n" + format_input(A, modified_components_A, orig_components_A,
@@ -20,7 +27,8 @@ def run(nfa, dfa):
                                             modified_components_B, orig_components_B, False, True, A, B, old_A, old_B)
         info += "\nConcatenated NFA:\n" + format_input(C, modified_components_A, orig_components_A, modified_components_B, orig_components_B, False, False, A, B, old_A, old_B)
 
-    if dfa:
+    #if type is dfa, create dfa concatenation
+    if concatenation_type == "dfa":
         D, modified_components_A, orig_components_A, modified_components_B, orig_components_B, B, A = create_concat_dfa(A, B)
         orig_components_A = A[1]
         orig_components_B = B[1]
@@ -30,8 +38,11 @@ def run(nfa, dfa):
                                                        modified_components_B, orig_components_B, False, True, A, B, old_A, old_B)
         info += "\nConcatenated DFA:\n" + format_input(D, modified_components_A, orig_components_A, modified_components_B, orig_components_B, False, False, A, B, old_A, old_B)
 
+    #highlight keywords
     keywords_to_highlight = ["Concatenated DFA:", "Concatenated NFA:"]
-    display_on_gui(info, keywords_to_highlight)
+
+    #display result to the gui window
+    display_on_gui(info, keywords_to_highlight, concatenation_type)
 
 
 #reads in file and formats then places the information into arrays
@@ -41,12 +52,12 @@ def read_file(file_path):
 
     data = []
     for line in lines:
-        # Split the line at ':' and take everything after it
+        #split on : and take everything after
         parsed_data = line.split(': ', 1)[-1].strip()
-        # Add the parsed data to the array
+        #add parsed data to array
         data.append(parsed_data)
 
-    # Create a numpy array from the parsed data
+    #numpy array from parsed data
     result_array = np.array(data)
 
     array_a = []
@@ -122,7 +133,6 @@ def create_concat_dfa(A, B):
     AB.append(B[4])
     #connections
     AB.append(dfa_transitions(A[5], B[5], E, A[4], B[3]))
-    get_new_transitions_variables_dfa(B[4])
     print("Concatinated DFA of " + A[0] + " and " + B[0] + "; " + AB[0] + ":")
     return AB, modified_components_A, orig_components_A, modified_components_B, orig_components_B, B, A
 
@@ -137,12 +147,6 @@ def epsilon_transitions(A, B, component_1, component_2):
 
     result = result + ", " + B
     return result
-
-#get the new langauge for each transition statement in a dfa
-def get_new_transitions_variables_dfa(B):
-    B = [part.strip() for part in B.strip("{}").split(",")]
-    print(B)
-
 
 #create the transitions from one DFA to another and rewrite/format the transition table
 def dfa_transitions(A, B, E, component_1, component_2):
@@ -164,10 +168,9 @@ def getQ(A, B):
     all_components = components1 + components2
     unique_components = list(set(all_components))
 
-    # Create a new list to store modified components
     modified_components = []
 
-    # Check for duplicates and replace them with unique random numbers
+    #check for duplicates
     for component in all_components:
         if all_components.count(component) > 1:
             modified_component = random.randint(1, 100)
@@ -193,19 +196,20 @@ def getE(A, B):
 
     return result_string
 
+#modify components to not be repeating (checking if input is valid)
 def modify_components(components, modified_components, A, B):
     modified_components_set = set(modified_components.values())
     new_components = []
 
+    #replace each repeating component of both DFAs or NFAs w/random numbers
     for component in components:
         if '(' in component:
-            # Handle nested structures without recursion
             nested_components = component[1:-1].split(',')
             modified_nested_components = modify_components(nested_components, modified_components, A, B)
             new_component = '{' + ', '.join(modified_nested_components) + '}'
             new_components.append(new_component)
         elif component.startswith('q'):
-            # Replace q components with unique random numbers
+            #replace q components with random numbers
             if component in modified_components:
                 new_component = modified_components[component]
             else:
@@ -232,7 +236,6 @@ def modify_array(input_array, A, B):
     modified_array = []
     for i, item in enumerate(input_array):
         if item.startswith('{'):
-            # Modify components within curly braces
             components_list = item[1:-1].split(', ')
             modified_components_list = modify_components(components_list, modified_components, A, B)
             modified_item = '{' + ', '.join(str(comp) for comp in modified_components_list) + '}'
@@ -242,7 +245,7 @@ def modify_array(input_array, A, B):
     return modified_array, modified_components_list, components_list
 
 
-# Function to highlight text coming after specific keywords in the displayed information
+#highlights text
 def highlight_text(text_widget, keywords):
     for keyword in keywords:
         start_index = text_widget.search(keyword, "1.0", tk.END)
@@ -253,17 +256,17 @@ def highlight_text(text_widget, keywords):
             start_index = text_widget.search(keyword, end_index, tk.END)
 
 
-# Displays formatted information with highlighted text
-def display_on_gui(info, keywords):
+#displays formatted text
+def display_on_gui(info, keywords, concatenation_type):
     root = tk.Tk()
-    root.title("Concatenation Result")
+    root.title("Concatenation of two " + concatenation_type.upper() + "s")
 
     text = tk.Text(root, wrap="word", width=1280, height=720, font=("Helvetica", 16))
     text.pack()
 
     text.insert("1.0", info)
 
-    # Call the highlight_text function to highlight the specified keywords
+    #highlight keywords
     highlight_text(text, keywords)
 
     root.mainloop()
@@ -299,9 +302,9 @@ def format_input(X, modified_components_A, orig_components_A, modified_component
     elif (modified_components_A != -1 and A == False and B == True):  # A Case W/CHANGES
         result = ""
         result += "Name: " + X[0] + "\n"
-        result += "Original Q: " + str(BB[1]) + "  New Q: " + X[1] + "\n"
+        result += "Original Q: " + str(old_B[1]) + "  New Q: " + X[1] + "\n"
         result += "E: " + X[2] + "\n"
-        result += "Original q: " + old_B[3] + "  New q: " + X[3] + "\n"
+        result += "Original q: " + str(old_B[3]) + "  New q: " + X[3] + "\n"
         result += "Old F: " + old_B[4] + "  New F: " + X[4] + "\n"
         result += "Transition Table (delta): " + X[5] + "\n"
     elif (modified_components_A != -1 and A == False and B == False):  # A Case W/CHANGES
@@ -314,5 +317,18 @@ def format_input(X, modified_components_A, orig_components_A, modified_component
         result += "Transition Table (delta): " + X[5] + "\n"
     return result
 
+#get DFA or NFA concatenation option from user
+def get_concatenation_type():
+    root = tk.Tk()
+    root.withdraw()
+
+    #get concatenation type
+    concatenation_type = simpledialog.askstring("Concatenation Type", "Enter 'NFA' or 'DFA' for concatenation:")
+
+    #check is valid
+    while concatenation_type.lower() not in ["nfa", "dfa"]:
+        concatenation_type = simpledialog.askstring("Invalid Input", "Please enter 'NFA' or 'DFA':")
+
+    return concatenation_type.lower()
 
 # MAKE OUTPUT GREAT AGAIN!
