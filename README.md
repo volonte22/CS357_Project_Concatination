@@ -3,4 +3,4 @@ Concatination of two NFAs or DFAs using Python
 
 Run from main.py
   - enter text into input.txt
-  - enter if these are DFAs or NFAs on run
+  - enter if the input is DFAs or NFAs on run
