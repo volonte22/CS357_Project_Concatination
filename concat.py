@@ -7,7 +7,7 @@ import tkinter as tk
 #runs the program ; (True, False) for NFA concat. ; (False, True) for DFA concat.
 def run():
     #read input and initalize variables
-    A, B = read_file("sampleDFATest")
+    A, B = read_file("input.txt")
     info = "Input A:\n" + format_input(A, -1, "", "", "", True, False, A, B, A, B)
     info += "\nInput B:\n" + format_input(B, -1, "", "", "", False, True, A, B, A, B)
     old_A = A
