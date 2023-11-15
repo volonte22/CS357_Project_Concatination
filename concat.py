@@ -8,33 +8,40 @@ import tkinter as tk
 def run():
     #read input and initalize variables
     A, B = read_file("input.txt")
-    info = "Input A:\n" + format_input(A, -1, "", "", "", True, False, A, B, A, B)
-    info += "\nInput B:\n" + format_input(B, -1, "", "", "", False, True, A, B, A, B)
     old_A = A
     old_B = B
 
     #get type from user
     concatenation_type = get_concatenation_type()
 
+    #initial print of NFAs/DFAs
+    if concatenation_type == "nfa":
+        info = "Input NFA " + A[0] +": \n" + format_input(A, -1, "", "", "", True, False, A, B, A, B)
+        info += "\nInput NFA " + B[0] + ": \n" + format_input(B, -1, "", "", "", False, True, A, B, A, B)
+    elif concatenation_type == "dfa":
+        info = "Input DFA " + A[0] + ": \n" + format_input(A, -1, "", "", "", True, False, A, B, A, B)
+        info += "\nInput DFA " + B[0] + ": \n" + format_input(B, -1, "", "", "", False, True, A, B, A, B)
+
     #if type = nfa, create nfa concatenation
     if concatenation_type == "nfa":
         C, modified_components_A, orig_components_A, modified_components_B, orig_components_B, old_A, old_B = create_concat_dfa(A, B)
         orig_components_A = A[1]
         orig_components_B = B[1]
-        info += "\nNew A:\n" + format_input(A, modified_components_A, orig_components_A,
+        info += "\nNew NFA " + A[0] + ": \n" + format_input(A, modified_components_A, orig_components_A,
                                             modified_components_B, orig_components_B, True, False, A, B, old_A, old_B)
-        info += "\nNew B:\n" + format_input(B, modified_components_A, orig_components_A,
+        info += "\nNew NFA " + B[0] + ": \n" + format_input(B, modified_components_A, orig_components_A,
                                             modified_components_B, orig_components_B, False, True, A, B, old_A, old_B)
-        info += "\nConcatenated NFA:\n" + format_input(C, modified_components_A, orig_components_A, modified_components_B, orig_components_B, False, False, A, B, old_A, old_B)
+        info += "\nConcatenated NFA:\n" + format_input(C, modified_components_A, orig_components_A, modified_components_B, orig_components_B,
+                                                       False, False, A, B, old_A, old_B)
 
     #if type is dfa, create dfa concatenation
     if concatenation_type == "dfa":
         D, modified_components_A, orig_components_A, modified_components_B, orig_components_B, B, A = create_concat_dfa(A, B)
         orig_components_A = A[1]
         orig_components_B = B[1]
-        info += "\nNew A:\n" + format_input(A, modified_components_A, orig_components_A,
+        info += "\nNew DFA " + A[0] + ": \n" + format_input(A, modified_components_A, orig_components_A,
                                             modified_components_B, orig_components_B, True, False, A, B, old_A, old_B)
-        info += "\nNew B:\n" + format_input(B, modified_components_A, orig_components_A,
+        info += "\nNew DFA " + B[0] + ": \n" + format_input(B, modified_components_A, orig_components_A,
                                                        modified_components_B, orig_components_B, False, True, A, B, old_A, old_B)
         info += "\nConcatenated DFA:\n" + format_input(D, modified_components_A, orig_components_A, modified_components_B, orig_components_B, False, False, A, B, old_A, old_B)
 
@@ -230,19 +237,21 @@ def modify_components(components, modified_components, A, B):
             new_components.append(component)
     return new_components
 
-#modifies the array to not contain the same states
 def modify_array(input_array, A, B):
     modified_components = {}
     modified_array = []
+
     for i, item in enumerate(input_array):
         if item.startswith('{'):
             components_list = item[1:-1].split(', ')
+            print(components_list)
             modified_components_list = modify_components(components_list, modified_components, A, B)
             modified_item = '{' + ', '.join(str(comp) for comp in modified_components_list) + '}'
             modified_array.append(modified_item)
         else:
             modified_array.append(item)
-    return modified_array, modified_components_list, components_list
+
+    return modified_array, modified_components, modified_components_list
 
 
 #highlights text
@@ -275,6 +284,7 @@ def display_on_gui(info, keywords, concatenation_type):
 #formats output to be displayed in a window
 def format_input(X, modified_components_A, orig_components_A, modified_components_B, orig_components_B, A, B, AA, BB, old_A, old_B):
     result = ""
+    print(old_A)
     if (modified_components_A == -1 and A == True and B == False): #A Case NO CHANGES YET
         result = ""
         result += "Name: " + X[0] + "\n"
@@ -291,22 +301,25 @@ def format_input(X, modified_components_A, orig_components_A, modified_component
         result += "q: " + X[3] + "\n"
         result += "F: " + X[4] + "\n"
         result += "Transition Table (delta): " + X[5] + "\n"
-    elif (modified_components_A != -1 and A == True and B == False):  # A Case W/CHANGES
-        result = ""
-        result += "Name: " + X[0] + "\n"
-        result += "Original Q: " + str(old_A[1]) + "  New Q: " + X[1] + "\n"
-        result += "E: " + X[2] + "\n"
-        result += "Original q: " + str(old_A[3]) + "  New q: " + X[3] + "\n"
-        result += "Old F: " + old_A[4] + "  New F: " + X[4] + "\n"
-        result += "Transition Table (delta): " + X[5] + "\n"
     elif (modified_components_A != -1 and A == False and B == True):  # A Case W/CHANGES
         result = ""
         result += "Name: " + X[0] + "\n"
-        result += "Original Q: " + str(old_B[1]) + "  New Q: " + X[1] + "\n"
+        result += "Original Q: " + X[1] + " ;  New Q: " + str(old_A[1]) + "\n"
         result += "E: " + X[2] + "\n"
-        result += "Original q: " + str(old_B[3]) + "  New q: " + X[3] + "\n"
-        result += "Old F: " + old_B[4] + "  New F: " + X[4] + "\n"
-        result += "Transition Table (delta): " + X[5] + "\n"
+        result += "Original q: " + X[3] + " ;  New q: " + str(old_A[3]) + "\n"
+        result += "Original F: " + X[4] + " ;  New F: " + str(old_A[4]) + "\n"
+        result += "Original Transition Table (delta): " + X[5] + " ; New Transition Table (delta): " + str(old_A[5]) + "\n"
+    elif (modified_components_A != -1 and A == True and B == False):  # A Case W/CHANGES
+        result = ""
+        result += "Name: " + X[0] + "\n"
+        if (str(old_A[1]) != X[1]):
+            result += "Original Q: " + X[1] + " ;  New Q: " + str(old_B[1]) + "\n"
+        else:
+            result += "Q: " + X[1] + "\n"
+        result += "E: " + X[2] + "\n"
+        result += "Original q: " + X[3] + " ;  New q: " + str(old_B[3]) + "\n"
+        result += "Original F: " + X[4] + " ;  New F: " + str(old_B[4]) + "\n"
+        result += "Original Transition Table (delta): " + X[5] + " ; New Transition Table (delta): " + str(old_B[5]) + "\n"
     elif (modified_components_A != -1 and A == False and B == False):  # A Case W/CHANGES
         result = ""
         result += "Name: " + X[0] + "\n"
@@ -330,5 +343,3 @@ def get_concatenation_type():
         concatenation_type = simpledialog.askstring("Invalid Input", "Please enter 'NFA' or 'DFA':")
 
     return concatenation_type.lower()
-
-# MAKE OUTPUT GREAT AGAIN!
