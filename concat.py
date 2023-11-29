@@ -21,8 +21,9 @@ global_font_first_display = ("Helvetica", 29, 'bold')
 def run():
     #pick, read, and set variables from file
     pick_file()
+
+    #read in file
     A, B = read_file(file)
-    concatenation_type = "nfa"
     info = ""
 
     #initial print of NFAs/DFAs
