@@ -1,49 +1,49 @@
-from tkinter import simpledialog
-import numpy as np
-import pandas as pd
+#Author @ Jack Volonte
+#Date: 11/29/2023
+#Decription: This concat.py file will read in a file that contains 2 DFAs or NFAs
+#chosen from the user and return a concatenated version through a GUI window.
+
+#imports
+from tkinter import simpledialog, filedialog
 import random
 import tkinter as tk
+import numpy as np
 
-#runs the program ; (True, False) for NFA concat. ; (False, True) for DFA concat.
+#global variables initalization
+file_names = ["Test Case 1 (NFA).txt", "Test Case 4 (NFA).txt", "Test Case 3 (NFA).txt", "Test Case 2 (DFA).txt",
+              "Test Case 5 (DFA).txt"]
+file = None
+concat_legit = False
+concatenation_type = ""
+global_font_first_display = ("Helvetica", 29, 'bold')
+
+#runs the program
 def run():
-    #read input and initalize variables
-    A, B = read_file("input.txt")
-    old_A = A
-    old_B = B
-
-    #get type from user
-    concatenation_type = get_concatenation_type()
+    #pick, read, and set variables from file
+    #pick_file()
+    print("hi")
+    A, B = read_file("Test Case 1 (NFA).txt")
+    concatenation_type = "nfa"
+    info = "jack"
 
     #initial print of NFAs/DFAs
     if concatenation_type == "nfa":
-        info = "Input NFA " + A[0] +": \n" + format_input(A, -1, "", "", "", True, False, A, B, A, B)
-        info += "\nInput NFA " + B[0] + ": \n" + format_input(B, -1, "", "", "", False, True, A, B, A, B)
+        info = "Input NFA 1: \n" + format_input(A, -1, True, False)
+        info += "\nInput NFA 2: \n" + format_input(B, -1, False, True)
     elif concatenation_type == "dfa":
-        info = "Input DFA " + A[0] + ": \n" + format_input(A, -1, "", "", "", True, False, A, B, A, B)
-        info += "\nInput DFA " + B[0] + ": \n" + format_input(B, -1, "", "", "", False, True, A, B, A, B)
+        info = "Input DFA 1: \n" + format_input(A, -1, False, True)
+        info += "\nInput DFA 2: \n" + format_input(B, -1, False, True)
 
     #if type = nfa, create nfa concatenation
     if concatenation_type == "nfa":
-        C, modified_components_A, orig_components_A, modified_components_B, orig_components_B, old_A, old_B = create_concat_dfa(A, B)
-        orig_components_A = A[1]
-        orig_components_B = B[1]
-        info += "\nNew NFA " + A[0] + ": \n" + format_input(A, modified_components_A, orig_components_A,
-                                            modified_components_B, orig_components_B, True, False, A, B, old_A, old_B)
-        info += "\nNew NFA " + B[0] + ": \n" + format_input(B, modified_components_A, orig_components_A,
-                                            modified_components_B, orig_components_B, False, True, A, B, old_A, old_B)
-        info += "\nConcatenated NFA:\n" + format_input(C, modified_components_A, orig_components_A, modified_components_B, orig_components_B,
-                                                       False, False, A, B, old_A, old_B)
+        C, old_A, old_B = create_concat_nfa(A, B)
+        info += "\nConcatenated NFA:\n" + format_input(C, -1, False, False)
 
     #if type is dfa, create dfa concatenation
     if concatenation_type == "dfa":
-        D, modified_components_A, orig_components_A, modified_components_B, orig_components_B, B, A = create_concat_dfa(A, B)
-        orig_components_A = A[1]
-        orig_components_B = B[1]
-        info += "\nNew DFA " + A[0] + ": \n" + format_input(A, modified_components_A, orig_components_A,
-                                            modified_components_B, orig_components_B, True, False, A, B, old_A, old_B)
-        info += "\nNew DFA " + B[0] + ": \n" + format_input(B, modified_components_A, orig_components_A,
-                                                       modified_components_B, orig_components_B, False, True, A, B, old_A, old_B)
-        info += "\nConcatenated DFA:\n" + format_input(D, modified_components_A, orig_components_A, modified_components_B, orig_components_B, False, False, A, B, old_A, old_B)
+        D, B, A = create_concat_dfa(A, B)
+        info += "\nConcatenated DFA:\n" + format_input(D, -1, False, False)
+
 
     #highlight keywords
     keywords_to_highlight = ["Concatenated DFA:", "Concatenated NFA:"]
@@ -77,7 +77,6 @@ def read_file(file_path):
         else:
             array_a.append(i)
 
-
     return array_a, array_b
 
 #prints a definition given a DFA or NFA
@@ -91,13 +90,6 @@ def print_input(X):
 
 #creates a NFA for the concatination of 2 NFAs
 def create_concat_nfa(A, B):
-
-    A, modified_components_A, orig_components_A = modify_array(A, True, False)
-    print(A[0] + " after changes: \n")
-    print_input(A)
-    B, modified_components_B, orig_components_B = modify_array(B, False, True)
-    print(B[0] + " after changes: \n")
-    print_input(B)
 
     AB = []
     #name
@@ -113,18 +105,10 @@ def create_concat_nfa(A, B):
     #connections
     AB.append(epsilon_transitions(A[5], B[5], A[4], B[3]))
 
-    print("Concatinated NFA of " + A[0] + " and " + B[0] + "; " + AB[0] + ":")
-    return AB, modified_components_A, orig_components_A, modified_components_B, orig_components_B, B, A
+    return AB, B, A
 
 #create a DFA for the concatination of 2 DFAs
 def create_concat_dfa(A, B):
-
-    A, modified_components_A, orig_components_A = modify_array(A, True, False)
-    print(A[0] + " after changes: \n")
-    print_input(A)
-    B, modified_components_B, orig_components_B = modify_array(B, False, True)
-    print(B[0] + " after changes: \n")
-    print_input(B)
 
     AB = []
     #name
@@ -139,9 +123,9 @@ def create_concat_dfa(A, B):
     #final
     AB.append(B[4])
     #connections
-    AB.append(dfa_transitions(A[5], B[5], E, A[4], B[3]))
-    print("Concatinated DFA of " + A[0] + " and " + B[0] + "; " + AB[0] + ":")
-    return AB, modified_components_A, orig_components_A, modified_components_B, orig_components_B, B, A
+    AB.append(dfa_transitions(A, B, A[5], B[5], E, A[4], B[3]))
+
+    return AB, B, A
 
 #create the epsilon transitions and rewrite the transition table
 def epsilon_transitions(A, B, component_1, component_2):
@@ -149,23 +133,25 @@ def epsilon_transitions(A, B, component_1, component_2):
     component_2 = component_2.strip("{}")
     result = A
     for i in components_1_list:
-        output = "{" + i + ", " + component_2 + ", e}"
+        output = "{" + i + ", " + component_2 + ", (e)}"
         result = result + ", " + output
 
     result = result + ", " + B
     return result
 
 #create the transitions from one DFA to another and rewrite/format the transition table
-def dfa_transitions(A, B, E, component_1, component_2):
-    components_1_list = [part.strip() for part in component_1.strip("{}").split(",")]
-    component_2 = component_2.strip("{}")
-    E = "(" + E.strip("{}") + ")"
-    result = A
-    for i in components_1_list:
-        output = "{" + i + ", " + component_2 + ", " + E + "}"
-        result = result + ", " + output
-    result = result + ", " + B
+def dfa_transitions(A, B, A_trans, B_trans, E, input_str, replacement_str):
+    result = A_trans + ", "
+    input_list = [part.strip() for part in input_str.strip("{}").split(",")]
+    replacement_list = [part.strip() for part in replacement_str.strip("{}").split(",")]
+
+    for i in input_list:
+        modified_string = B_trans.replace(replacement_list[0], i)
+        result += modified_string + ", "
+
     return result
+
+
 
 #returns the unique states of both DFA's/NFA's
 def getQ(A, B):
@@ -173,7 +159,6 @@ def getQ(A, B):
     components2 = B[1:-1].split(', ')
 
     all_components = components1 + components2
-    unique_components = list(set(all_components))
 
     modified_components = []
 
@@ -203,58 +188,7 @@ def getE(A, B):
 
     return result_string
 
-#modify components to not be repeating (checking if input is valid)
-def modify_components(components, modified_components, A, B):
-    modified_components_set = set(modified_components.values())
-    new_components = []
-
-    #replace each repeating component of both DFAs or NFAs w/random numbers
-    for component in components:
-        if '(' in component:
-            nested_components = component[1:-1].split(',')
-            modified_nested_components = modify_components(nested_components, modified_components, A, B)
-            new_component = '{' + ', '.join(modified_nested_components) + '}'
-            new_components.append(new_component)
-        elif component.startswith('q'):
-            #replace q components with random numbers
-            if component in modified_components:
-                new_component = modified_components[component]
-            else:
-                if A:
-                    modified_component = random.randint(1, 100)
-                if B:
-                    modified_component = random.randint(101, 200)
-                while modified_component in modified_components_set:
-                    if A:
-                        modified_component = random.randint(1, 100)
-                    if B:
-                        modified_component = random.randint(101, 200)
-                modified_components[component] = modified_component
-                modified_components_set.add(modified_component)
-                new_component = modified_component
-            new_components.append(new_component)
-        else:
-            new_components.append(component)
-    return new_components
-
-def modify_array(input_array, A, B):
-    modified_components = {}
-    modified_array = []
-
-    for i, item in enumerate(input_array):
-        if item.startswith('{'):
-            components_list = item[1:-1].split(', ')
-            print(components_list)
-            modified_components_list = modify_components(components_list, modified_components, A, B)
-            modified_item = '{' + ', '.join(str(comp) for comp in modified_components_list) + '}'
-            modified_array.append(modified_item)
-        else:
-            modified_array.append(item)
-
-    return modified_array, modified_components, modified_components_list
-
-
-#highlights text
+#highlights text ofr output
 def highlight_text(text_widget, keywords):
     for keyword in keywords:
         start_index = text_widget.search(keyword, "1.0", tk.END)
@@ -270,7 +204,7 @@ def display_on_gui(info, keywords, concatenation_type):
     root = tk.Tk()
     root.title("Concatenation of two " + concatenation_type.upper() + "s")
 
-    text = tk.Text(root, wrap="word", width=1280, height=720, font=("Helvetica", 16))
+    text = tk.Text(root, wrap="word", width=1280, height=720, font=("Helvetica", 24))
     text.pack()
 
     text.insert("1.0", info)
@@ -282,10 +216,9 @@ def display_on_gui(info, keywords, concatenation_type):
 
 
 #formats output to be displayed in a window
-def format_input(X, modified_components_A, orig_components_A, modified_components_B, orig_components_B, A, B, AA, BB, old_A, old_B):
+def format_input(X, modified_components_A, A, B):
     result = ""
-    print(old_A)
-    if (modified_components_A == -1 and A == True and B == False): #A Case NO CHANGES YET
+    if (modified_components_A == -1 and A == True and B == False): #A Case
         result = ""
         result += "Name: " + X[0] + "\n"
         result += "Q: " + X[1] + "\n"
@@ -293,7 +226,7 @@ def format_input(X, modified_components_A, orig_components_A, modified_component
         result += "q: " + X[3] + "\n"
         result += "F: " + X[4] + "\n"
         result += "Transition Table (delta): " + X[5] + "\n"
-    elif (modified_components_A == -1 and A == False and B == True): #B Case NO CHANGES YET
+    elif (modified_components_A == -1 and A == False and B == True): #B Case
         result = ""
         result += "Name: " + X[0] + "\n"
         result += "Q: " + X[1] + "\n"
@@ -301,26 +234,7 @@ def format_input(X, modified_components_A, orig_components_A, modified_component
         result += "q: " + X[3] + "\n"
         result += "F: " + X[4] + "\n"
         result += "Transition Table (delta): " + X[5] + "\n"
-    elif (modified_components_A != -1 and A == False and B == True):  # A Case W/CHANGES
-        result = ""
-        result += "Name: " + X[0] + "\n"
-        result += "Original Q: " + X[1] + " ;  New Q: " + str(old_A[1]) + "\n"
-        result += "E: " + X[2] + "\n"
-        result += "Original q: " + X[3] + " ;  New q: " + str(old_A[3]) + "\n"
-        result += "Original F: " + X[4] + " ;  New F: " + str(old_A[4]) + "\n"
-        result += "Original Transition Table (delta): " + X[5] + " ; New Transition Table (delta): " + str(old_A[5]) + "\n"
-    elif (modified_components_A != -1 and A == True and B == False):  # A Case W/CHANGES
-        result = ""
-        result += "Name: " + X[0] + "\n"
-        if (str(old_A[1]) != X[1]):
-            result += "Original Q: " + X[1] + " ;  New Q: " + str(old_B[1]) + "\n"
-        else:
-            result += "Q: " + X[1] + "\n"
-        result += "E: " + X[2] + "\n"
-        result += "Original q: " + X[3] + " ;  New q: " + str(old_B[3]) + "\n"
-        result += "Original F: " + X[4] + " ;  New F: " + str(old_B[4]) + "\n"
-        result += "Original Transition Table (delta): " + X[5] + " ; New Transition Table (delta): " + str(old_B[5]) + "\n"
-    elif (modified_components_A != -1 and A == False and B == False):  # A Case W/CHANGES
+    elif (modified_components_A == -1 and A == False and B == False):  # Final Concatenated Case
         result = ""
         result += "Name: " + X[0] + "\n"
         result += "Q: " + X[1] + "\n"
@@ -343,3 +257,91 @@ def get_concatenation_type():
         concatenation_type = simpledialog.askstring("Invalid Input", "Please enter 'NFA' or 'DFA':")
 
     return concatenation_type.lower()
+
+
+
+#prompt user to pick file to concatenate for
+def pick_file():
+    #perform action for concatenate button
+    def perform_action():
+        global file
+        global concat_legit
+        if file is not None and concat_legit is True:
+            print(f"Creating concatenation of DFA or NFA for file: {file}")
+            #root.destroy()
+        else:
+            print("No file selected or wrong concatenation entry.")
+            perform_label_wrong()
+
+
+    #select file
+    def select_file():
+        global file
+        file = filedialog.askopenfilename()
+        print(f"Selected file: {file}")
+        update_label()
+
+    #update concatenation_type variable
+    def update_concatenation_type():
+        global concatenation_type
+        concatenation_type = concatenation_entry.get()
+        # check is valid
+        if concatenation_type.lower() not in ["nfa", "dfa"]:
+            update_label_concat_wrong()
+        else:
+            global concat_legit
+            concat_legit = True
+            update_label_concat_right()
+
+    # display file once its chosen
+    def update_label_concat_wrong():
+        instruction_label.config(text="Wrong input - please enter 'DFA' or 'NFA:'", foreground='red', font=global_font_first_display)
+
+    def update_label_concat_right():
+        instruction_label.config(text="Concatenation type accepted", foreground='green', font=global_font_first_display)
+
+    def perform_label_wrong():
+        global file
+        global concat_legit
+        if concat_legit is False and file is None:
+            perform_label.config(text="Invalid concatenation type and no file selected...", foreground='red', font=global_font_first_display)
+        elif concat_legit is True and file is None:
+            perform_label.config(text="No file was selected...", foreground='red', font=global_font_first_display)
+        elif concat_legit is False and file is not None:
+            perform_label.config(text="Invalid concatenation type...", foreground='red', font=global_font_first_display)
+
+
+    #display file once its chosen
+    def update_label():
+        selected_file_label.config(text=f"Selected file: {file}")
+
+    root = tk.Tk()
+    root.title("Concatenation of two DFAs or NFAs")
+    root.geometry("800x400")
+
+    #button stuff for select file
+    select_button = tk.Button(root, text="Select File", command=select_file, font=global_font_first_display)
+    select_button.pack(pady=10)
+
+    #display file initalization
+    selected_file_label = tk.Label(root, text="")
+    selected_file_label.pack(pady=10)
+
+    #concatenation label + text box
+    instruction_label = tk.Label(root, text="Concatenation Type Entry - Enter 'NFA' or 'DFA':", font=global_font_first_display)
+    instruction_label.pack(pady=5)
+    concatenation_entry = tk.Entry(root, width=30,bg='lightgray')
+    concatenation_entry.pack(pady=10)
+
+    #update concat type
+    update_button = tk.Button(root, text="Update Concatenation Type", command=update_concatenation_type, font=global_font_first_display)
+    update_button.pack(pady=10)
+
+    #do the concatenation on the selected file
+    perform_label = tk.Label(root, text="")
+    perform_label.pack(pady=5)
+    perform_button = tk.Button(root, text="Concatenate The Contents", command=perform_action, font=global_font_first_display)
+    perform_button.pack(pady=10)
+
+    #start loop
+    root.mainloop()
