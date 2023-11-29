@@ -20,11 +20,10 @@ global_font_first_display = ("Helvetica", 29, 'bold')
 #runs the program
 def run():
     #pick, read, and set variables from file
-    #pick_file()
-    print("hi")
-    A, B = read_file("Test Case 1 (NFA).txt")
+    pick_file()
+    A, B = read_file(file)
     concatenation_type = "nfa"
-    info = "jack"
+    info = ""
 
     #initial print of NFAs/DFAs
     if concatenation_type == "nfa":
@@ -151,8 +150,6 @@ def dfa_transitions(A, B, A_trans, B_trans, E, input_str, replacement_str):
 
     return result
 
-
-
 #returns the unique states of both DFA's/NFA's
 def getQ(A, B):
     components1 = A[1:-1].split(', ')
@@ -176,7 +173,6 @@ def getQ(A, B):
 
     return result_string
 
-
 #returns the E (language) found within both DFA's/NFA's
 def getE(A, B):
     components1 = A[1:-1].split(', ')
@@ -188,7 +184,7 @@ def getE(A, B):
 
     return result_string
 
-#highlights text ofr output
+#highlights text of output
 def highlight_text(text_widget, keywords):
     for keyword in keywords:
         start_index = text_widget.search(keyword, "1.0", tk.END)
@@ -198,14 +194,15 @@ def highlight_text(text_widget, keywords):
             text_widget.tag_configure("highlight", background="yellow")
             start_index = text_widget.search(keyword, end_index, tk.END)
 
-
 #displays formatted text
 def display_on_gui(info, keywords, concatenation_type):
     root = tk.Tk()
     root.title("Concatenation of two " + concatenation_type.upper() + "s")
+    root.geometry("1920x1080")
 
-    text = tk.Text(root, wrap="word", width=1280, height=720, font=("Helvetica", 24))
+    text = tk.Text(root, wrap="word", width=1280, height=720, font=("Helvetica", 26))
     text.pack()
+
 
     text.insert("1.0", info)
 
@@ -213,7 +210,6 @@ def display_on_gui(info, keywords, concatenation_type):
     highlight_text(text, keywords)
 
     root.mainloop()
-
 
 #formats output to be displayed in a window
 def format_input(X, modified_components_A, A, B):
@@ -258,8 +254,6 @@ def get_concatenation_type():
 
     return concatenation_type.lower()
 
-
-
 #prompt user to pick file to concatenate for
 def pick_file():
     #perform action for concatenate button
@@ -268,10 +262,10 @@ def pick_file():
         global concat_legit
         if file is not None and concat_legit is True:
             print(f"Creating concatenation of DFA or NFA for file: {file}")
-            #root.destroy()
+            root.destroy()
         else:
             print("No file selected or wrong concatenation entry.")
-            perform_label_wrong()
+            concat_the_file_wrong()
 
 
     #select file
@@ -284,7 +278,7 @@ def pick_file():
     #update concatenation_type variable
     def update_concatenation_type():
         global concatenation_type
-        concatenation_type = concatenation_entry.get()
+        concatenation_type = concat_box.get()
         # check is valid
         if concatenation_type.lower() not in ["nfa", "dfa"]:
             update_label_concat_wrong()
@@ -295,53 +289,71 @@ def pick_file():
 
     # display file once its chosen
     def update_label_concat_wrong():
-        instruction_label.config(text="Wrong input - please enter 'DFA' or 'NFA:'", foreground='red', font=global_font_first_display)
+        concat_prompt.config(text="Wrong input - please enter 'DFA' or 'NFA:'", foreground='red', font=global_font_first_display)
 
     def update_label_concat_right():
-        instruction_label.config(text="Concatenation type accepted", foreground='green', font=global_font_first_display)
+        concat_prompt.config(text="Concatenation type accepted", foreground='green', font=global_font_first_display)
 
-    def perform_label_wrong():
+    def concat_the_file_wrong():
         global file
         global concat_legit
         if concat_legit is False and file is None:
-            perform_label.config(text="Invalid concatenation type and no file selected...", foreground='red', font=global_font_first_display)
+            concat_the_file.config(text="Invalid concatenation type and no file selected...", foreground='red', font=global_font_first_display)
         elif concat_legit is True and file is None:
-            perform_label.config(text="No file was selected...", foreground='red', font=global_font_first_display)
+            concat_the_file.config(text="No file was selected...", foreground='red', font=global_font_first_display)
         elif concat_legit is False and file is not None:
-            perform_label.config(text="Invalid concatenation type...", foreground='red', font=global_font_first_display)
-
+            concat_the_file.config(text="Invalid concatenation type...", foreground='red', font=global_font_first_display)
 
     #display file once its chosen
     def update_label():
-        selected_file_label.config(text=f"Selected file: {file}")
+        select_file_prompt.config(text=f"Selected file: {file}")
 
     root = tk.Tk()
     root.title("Concatenation of two DFAs or NFAs")
-    root.geometry("800x400")
+    root.geometry("1920x1080")
+
+    # spacing for visual improvement
+    spacing_prompt = tk.Label(root, text="\n",
+                              font=global_font_first_display)
+    spacing_prompt.pack(pady=10)
 
     #button stuff for select file
-    select_button = tk.Button(root, text="Select File", command=select_file, font=global_font_first_display)
+    select_button = tk.Button(root, text="Select File - choose from finder (test files included in project folder)",
+                              command=select_file, font=global_font_first_display, bg='lightgray')
     select_button.pack(pady=10)
 
     #display file initalization
-    selected_file_label = tk.Label(root, text="")
-    selected_file_label.pack(pady=10)
+    select_file_prompt = tk.Label(root, text="")
+    select_file_prompt.pack(pady=10)
+
+    # spacing for visual improvement
+    spacing_prompt = tk.Label(root, text="\n\n",
+                              font=global_font_first_display)
+    spacing_prompt.pack(pady=10)
 
     #concatenation label + text box
-    instruction_label = tk.Label(root, text="Concatenation Type Entry - Enter 'NFA' or 'DFA':", font=global_font_first_display)
-    instruction_label.pack(pady=5)
-    concatenation_entry = tk.Entry(root, width=30,bg='lightgray')
-    concatenation_entry.pack(pady=10)
+    concat_prompt = tk.Label(root, text="Concatenation Type Entry - Enter 'NFA' or 'DFA':", font=global_font_first_display)
+    concat_prompt.pack(pady=10)
+    concat_box = tk.Entry(root, width=50, bg='lightgray', font=global_font_first_display)
+    concat_box.pack(pady=10)
 
     #update concat type
-    update_button = tk.Button(root, text="Update Concatenation Type", command=update_concatenation_type, font=global_font_first_display)
-    update_button.pack(pady=10)
+    concat_type_response = tk.Button(root, text="Update Concatenation Type", command=update_concatenation_type,
+                                     font=global_font_first_display, bg='lightgray')
+    concat_type_response.pack(pady=10)
+
+    # spacing for visual improvement
+    spacing_prompt = tk.Label(root, text="\n\n",
+                              font=global_font_first_display)
+    spacing_prompt.pack(pady=10)
+
 
     #do the concatenation on the selected file
-    perform_label = tk.Label(root, text="")
-    perform_label.pack(pady=5)
-    perform_button = tk.Button(root, text="Concatenate The Contents", command=perform_action, font=global_font_first_display)
-    perform_button.pack(pady=10)
+    concat_the_file = tk.Label(root, text="")
+    concat_the_file.pack(pady=5)
+    concat_file_button = tk.Button(root, text="Concatenate The Contents", command=perform_action,
+                                   font=global_font_first_display, bg='lightgray')
+    concat_file_button.pack(pady=10)
 
     #start loop
     root.mainloop()
