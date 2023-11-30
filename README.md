@@ -1,7 +1,10 @@
-#Author @ Jack Volonte
-#Date: 11/29/2023
-#Title: CS357_Project_Concatination
-#Description: Concatination of two NFAs or DFAs using Python
+Author @ Jack Volonte 
+
+Date: 11/29/2023
+
+Title: CS357_Project_Concatination
+
+Description: Concatination of two NFAs or DFAs using Python
 
 Run from main.py
   - select a file and enter the concatenation type - "dfa" or "nfa"
