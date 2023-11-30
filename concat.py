@@ -34,12 +34,12 @@ def run():
         info = "Input DFA 1: \n" + format_input(A, -1, False, True)
         info += "\nInput DFA 2: \n" + format_input(B, -1, False, True)
 
-    #if type = nfa, create nfa concatenation
+    #if type = nfa, execute nfa concatenation
     if concatenation_type.lower() == "nfa":
         C, old_A, old_B = create_concat_nfa(A, B)
         info += "\nConcatenated NFA:\n" + format_input(C, -1, False, False)
 
-    #if type is dfa, create dfa concatenation
+    #if type is dfa, execute dfa concatenation
     if concatenation_type.lower() == "dfa":
         D, B, A = create_concat_dfa(A, B)
         info += "\nConcatenated DFA:\n" + format_input(D, -1, False, False)
@@ -88,7 +88,7 @@ def print_input(X):
     print("F: " + X[4])
     print("Transition Table (delta): " + X[5]+"\n")
 
-#creates a NFA for the concatination of 2 NFAs
+#creates a NFA for the concatenation of 2 NFAs
 def create_concat_nfa(A, B):
 
     AB = []
@@ -107,7 +107,7 @@ def create_concat_nfa(A, B):
 
     return AB, B, A
 
-#create a DFA for the concatination of 2 DFAs
+#create a DFA for the concatenation of 2 DFAs
 def create_concat_dfa(A, B):
 
     AB = []
