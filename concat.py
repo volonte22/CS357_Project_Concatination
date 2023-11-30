@@ -27,20 +27,20 @@ def run():
     info = ""
 
     #initial print of NFAs/DFAs
-    if concatenation_type == "nfa":
+    if concatenation_type.lower() == "nfa":
         info = "Input NFA 1: \n" + format_input(A, -1, True, False)
         info += "\nInput NFA 2: \n" + format_input(B, -1, False, True)
-    elif concatenation_type == "dfa":
+    elif concatenation_type.lower() == "dfa":
         info = "Input DFA 1: \n" + format_input(A, -1, False, True)
         info += "\nInput DFA 2: \n" + format_input(B, -1, False, True)
 
     #if type = nfa, create nfa concatenation
-    if concatenation_type == "nfa":
+    if concatenation_type.lower() == "nfa":
         C, old_A, old_B = create_concat_nfa(A, B)
         info += "\nConcatenated NFA:\n" + format_input(C, -1, False, False)
 
     #if type is dfa, create dfa concatenation
-    if concatenation_type == "dfa":
+    if concatenation_type.lower() == "dfa":
         D, B, A = create_concat_dfa(A, B)
         info += "\nConcatenated DFA:\n" + format_input(D, -1, False, False)
 
