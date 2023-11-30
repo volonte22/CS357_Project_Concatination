@@ -1,4 +1,4 @@
-Author @ Jack Volonte
+Author @ Jack Volonte \n
 Date: 11/29/2023
 Title: CS357_Project_Concatination
 Description: Concatination of two NFAs or DFAs using Python
