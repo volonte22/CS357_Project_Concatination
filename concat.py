@@ -8,12 +8,16 @@ from tkinter import simpledialog, filedialog
 import random
 import tkinter as tk
 import numpy as np
+import os
+import re
+import sys
 
 #global variables initalization
 file_names = ["Test Case 1 (NFA).txt", "Test Case 4 (NFA).txt", "Test Case 3 (NFA).txt", "Test Case 2 (DFA).txt",
               "Test Case 5 (DFA).txt"]
 file = None
 concat_legit = False
+concat_button_pressed = False
 concatenation_type = ""
 global_font_first_display = ("Helvetica", 29, 'bold')
 
@@ -23,8 +27,12 @@ def run():
     pick_file()
 
     #read in file
-    A, B = read_file(file)
+    A, B, size = read_file(file)
+    print(A)
     info = ""
+
+    if concat_button_pressed == False:
+        sys.exit()
 
     #initial print of NFAs/DFAs
     if concatenation_type.lower() == "nfa":
@@ -58,11 +66,13 @@ def read_file(file_path):
         lines = file.readlines()
 
     data = []
+    size = 0
     for line in lines:
         #split on : and take everything after
         parsed_data = line.split(': ', 1)[-1].strip()
         #add parsed data to array
         data.append(parsed_data)
+        size = size + 1
 
     #numpy array from parsed data
     result_array = np.array(data)
@@ -77,7 +87,7 @@ def read_file(file_path):
         else:
             array_a.append(i)
 
-    return array_a, array_b
+    return array_a, array_b, size
 
 #prints a definition given a DFA or NFA
 def print_input(X):
@@ -144,10 +154,31 @@ def dfa_transitions(A, B, A_trans, B_trans, E, input_str, replacement_str):
     result = A_trans + ", "
     input_list = [part.strip() for part in input_str.strip("{}").split(",")]
     replacement_list = [part.strip() for part in replacement_str.strip("{}").split(",")]
+    parts_b_delta = [item.strip() for item in re.split(r',\s*(?![^{}]*\})', B_trans)]
+    print(input_list)
+    print(replacement_list)
+    print(parts_b_delta)
 
+    left_over = []
     for i in input_list:
-        modified_string = B_trans.replace(replacement_list[0], i)
-        result += modified_string + ", "
+        for b in parts_b_delta:
+            if replacement_list[0] in b:
+                new_string = b.replace(replacement_list[0], i)
+                result = result + new_string + ", "
+            else:
+                left_over.append(b)
+
+    seen_ele = set()
+    for ele in left_over:
+        if ele not in seen_ele:
+            result += ele + ", "
+            seen_ele.add(ele)
+
+    print(result)
+
+
+    if result.endswith(', '):
+        result = result[:-2]
 
     return result
 
@@ -255,19 +286,118 @@ def get_concatenation_type():
 
     return concatenation_type.lower()
 
+#filters items from a string into an array
+def filter_items(input_string):
+    list = [item.strip() for item in input_string.strip("{}").split(", ") if '(' not in item and ')' not in item]
+    for i in range(len(list)):
+        list[i] = list[i].strip('{}')
+    return list
+
+#filters only the langauge used in each transition in a given transition table string
+def get_language_delta_table(p):
+    language = []
+
+    pat = re.compile(r'\((.*?)\)')
+    match = pat.findall(p)
+
+    for matches in match:
+        parts = [part.strip() for part in matches.split(',')]
+        language.extend(parts)
+
+    return language
+
+#checks if a component of a DFA or NFA contains a wrong state
+def check_if_contains_wrong_state(list_to_check, list_to_compare):
+    good = True
+    for i in list_to_check:
+        print(i)
+        if i not in list_to_compare:
+            good = False
+            break
+    return good
+
+
+#checks if a files format is correct
+def checkFileValidity(file):
+    A, B, size = read_file(file)
+    good = False
+
+    message = ""
+
+    if size != 12:
+        message = "File size length is wrong, please select another file."
+        return False
+
+    QA = A[1]
+    QB = B[1]
+    EA = A[2]
+    EB = B[2]
+    qA = A[3]
+    qB = B[3]
+    fA = A[4]
+    fB = B[4]
+    dA = A[5]
+    dB = B[5]
+
+
+    #check if language found in both DFA or NFA are matching themselves and each other's language
+    if check_if_contains_wrong_state(get_language_delta_table(dA), filter_items(EA)) == False:
+        message = "One of more of the first DFA/NFAs delta table components contains language not defined in E of the first DFA/NFA, please select another file."
+        return False, message
+    if check_if_contains_wrong_state(get_language_delta_table(dB), filter_items(EB)) == False:
+        message = "One of more of the second DFA/NFAs delta table components contains language not defined in E of the second DFA/NFA, please select another file."
+        return False, message
+
+    #check if transition table contains correct states defined in Q
+    if check_if_contains_wrong_state(filter_items(dA), filter_items(QA)) == False:
+        message = "One of more of the first DFA/NFA's delta table components contains states are not defined in Q of the first DFA/NFA, please select another file."
+        return False, message
+    if check_if_contains_wrong_state(filter_items(dB), filter_items(QB)) == False:
+        message = "One of more of the second DFA/NFA's delta table components contains states are not defined in Q of the second DFA/NFA, please select another file."
+        return False, message
+
+    #check if initial contains correct states defined in Q
+    if check_if_contains_wrong_state(filter_items(qA), filter_items(QA)) == False:
+        message = "The first DFA/NFA's initial state is not defined in Q of the first DFA/NFA, please select another file."
+        return False, message
+    if check_if_contains_wrong_state(filter_items(qB), filter_items(QB)) == False:
+        message = "The second DFA/NFA's initial state is not defined in Q of the second DFA/NFA, please select another file."
+        return False, message
+
+    #check if languages are the same
+    if check_if_contains_wrong_state(filter_items(EA), filter_items(EB)) == False:
+        message = "The DFA/NFA's language is different between them both, please select another file."
+        return False, message
+
+    # check if final contains correct states defined in Q
+    if check_if_contains_wrong_state(filter_items(fA), filter_items(QA)) == False:
+        message = "The first DFA/NFA's final state is not defined in Q of the first DFA/NFA, please select another file."
+        return False, message
+    if check_if_contains_wrong_state(filter_items(fB), filter_items(QB)) == False:
+        message = "The second DFA/NFA's fina lstate is not defined in Q of the second DFA/NFA, please select another file."
+        return False, message
+
+    return True, ""
+
 #prompt user to pick file to concatenate for
 def pick_file():
     #perform action for concatenate button
     def perform_action():
         global file
         global concat_legit
-        if file is not None and concat_legit is True:
+        global concat_button_pressed
+        correct_file, message = checkFileValidity(file)
+
+        if file is not None and concat_legit is True and correct_file is True:
             print(f"Creating concatenation of DFA or NFA for file: {file}")
+            concat_button_pressed = True
             root.destroy()
         else:
-            print("No file selected or wrong concatenation entry.")
-            concat_the_file_wrong()
-
+            print("No File Selected")
+            if message == "":
+                concat_the_file_wrong(-1, "No file selected, please select a file.")
+            else:
+                concat_the_file_wrong(-1, message)
 
     #select file
     def select_file():
@@ -295,15 +425,19 @@ def pick_file():
     def update_label_concat_right():
         concat_prompt.config(text="Concatenation type accepted", foreground='green', font=global_font_first_display)
 
-    def concat_the_file_wrong():
+    def concat_the_file_wrong(r, message):
         global file
         global concat_legit
+
         if concat_legit is False and file is None:
             concat_the_file.config(text="Invalid concatenation type and no file selected...", foreground='red', font=global_font_first_display)
         elif concat_legit is True and file is None:
             concat_the_file.config(text="No file was selected...", foreground='red', font=global_font_first_display)
         elif concat_legit is False and file is not None:
             concat_the_file.config(text="Invalid concatenation type...", foreground='red', font=global_font_first_display)
+        elif r == -1:
+            concat_the_file.config(text=message, foreground='red',
+                                   font=("Helvetica", 14, 'bold'))
 
     #display file once its chosen
     def update_label():
