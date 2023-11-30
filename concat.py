@@ -28,7 +28,6 @@ def run():
 
     #read in file
     A, B, size = read_file(file)
-    print(A)
     info = ""
 
     if concat_button_pressed == False:
@@ -155,9 +154,6 @@ def dfa_transitions(A, B, A_trans, B_trans, E, input_str, replacement_str):
     input_list = [part.strip() for part in input_str.strip("{}").split(",")]
     replacement_list = [part.strip() for part in replacement_str.strip("{}").split(",")]
     parts_b_delta = [item.strip() for item in re.split(r',\s*(?![^{}]*\})', B_trans)]
-    print(input_list)
-    print(replacement_list)
-    print(parts_b_delta)
 
     left_over = []
     for i in input_list:
@@ -173,8 +169,6 @@ def dfa_transitions(A, B, A_trans, B_trans, E, input_str, replacement_str):
         if ele not in seen_ele:
             result += ele + ", "
             seen_ele.add(ele)
-
-    print(result)
 
 
     if result.endswith(', '):
@@ -310,7 +304,6 @@ def get_language_delta_table(p):
 def check_if_contains_wrong_state(list_to_check, list_to_compare):
     good = True
     for i in list_to_check:
-        print(i)
         if i not in list_to_compare:
             good = False
             break
